@@ -22,13 +22,14 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
     @Override
     public int calculateDeliveryFee(int cartVal, int distance, int numberOfItem, String time) {
         // Base fee
-        int deliveryFee = 2;
+        // 1e = 100 cents
+        int deliveryFee = 200;
         int surcharge = 0;
-        int minCartVal = 10;
-        int maxFee = 15;
-        cartVal = Utils.centsToEur(cartVal);
+        int minCartVal = 1000;
+        int maxFee = 1500;
+//        cartVal = Utils.centsToEur(cartVal);
         // Cart value >= 100e
-        if (cartVal >= 100){
+        if (cartVal >= 10000){
             return 0;
         }
 
@@ -41,7 +42,7 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
         int distanceDiff = distance - 1000;
         // 500m additional, change if needed
         int additionDist = 500;
-        int additionFee = 1;
+        int additionFee = 100;
 
         // for first 500m additional distance
         if (distanceDiff > 0){
@@ -51,7 +52,7 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
                 // If the difference is not 0 => greater than the rounded value, add 1eu to base fee
                 // E.g 501 % 500 = 1 or 1021 % 500 = 21
                 if (distanceDiff % additionDist != 0){
-                    deliveryFee += 1;
+                    deliveryFee += 100;
                 }
                 // Dividend gave how many time distanceDiff is greater than 500m
                 // E.g 501 / 500 = 1 => multiply 1 with 1 addition fee
@@ -64,22 +65,19 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
         // Item base
         int baseItemNo = 4;
         if (numberOfItem > baseItemNo){
-//            surcharge = Utils.eurToCents(surcharge);
             surcharge += (numberOfItem - baseItemNo) * 50;
-            System.out.println(Utils.centsToEur(surcharge));
         }
 
         deliveryFee = deliveryFee + surcharge;
-        System.out.println(deliveryFee);
 
         // Time base after got the total
-
+        Utils.parseStrToDateTimeUTC(time);
 
         if (deliveryFee >= maxFee){
             deliveryFee = maxFee;
         }
 
-        return Utils.eurToCents(deliveryFee);
+        return deliveryFee;
     }
 
     /**

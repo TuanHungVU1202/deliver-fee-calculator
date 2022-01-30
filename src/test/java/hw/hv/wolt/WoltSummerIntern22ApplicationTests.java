@@ -78,6 +78,11 @@ class WoltSummerIntern22ApplicationTests {
 		deliveryFee = deliveryFeeCalculatorService.getFeeBaseOnTime(constantFee, time);
 		assertEquals(constantFee, deliveryFee);
 
+		// UTC time still in Friday but Helsinki time is NOT
+		time = "2022-01-28T23:59:59Z";
+		deliveryFee = deliveryFeeCalculatorService.getFeeBaseOnTime(constantFee, time);
+		assertEquals(constantFee, deliveryFee);
+
 		// Friday NOT rush 3PM-7PM
 		time = "2022-01-28T13:59:59Z";
 		deliveryFee = deliveryFeeCalculatorService.getFeeBaseOnTime(constantFee, time);

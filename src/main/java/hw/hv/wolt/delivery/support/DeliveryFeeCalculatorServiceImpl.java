@@ -5,6 +5,9 @@ import hw.hv.wolt.delivery.DeliveryFeeDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.util.Calendar;
+
 @Service
 public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorService{
 
@@ -20,22 +23,20 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
      * @return final delivery fee
      */
     @Override
-    public int calculateDeliveryFee(int cartVal, int distance, int numberOfItem, String time) {
+    public int calculateDeliveryFee(int cartVal, int distance, int numberOfItem, String time) throws Exception {
         // Base fee
         // 1e = 100 cents
         int deliveryFee = 200;
         int surcharge = 0;
         int minCartVal = 1000;
         int maxFee = 1500;
-//        cartVal = Utils.centsToEur(cartVal);
+
         // Cart value >= 100e
         if (cartVal >= 10000){
             return 0;
         }
 
-        if (cartVal < minCartVal){
-            surcharge = minCartVal - cartVal;
-        }
+        surcharge = calculateBaseOnCartValue(surcharge, cartVal, minCartVal);
 
         // Distance base
         // Only add more fee when distance > 1000m
@@ -44,6 +45,34 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
         int additionDist = 500;
         int additionFee = 100;
 
+        deliveryFee = calculateBaseOnDistance(deliveryFee, distanceDiff, additionDist, additionFee);
+
+        // Item base
+        int baseItemNo = 4;
+        surcharge = calculateBaseOnItem(surcharge, numberOfItem, baseItemNo);
+
+        deliveryFee = deliveryFee + surcharge;
+
+        // Time base after got the total
+        deliveryFee = calculateBaseOnTime(deliveryFee, time);
+
+
+        // Constraint, total fee is always 15e maximum
+        if (deliveryFee >= maxFee){
+            deliveryFee = maxFee;
+        }
+
+        return deliveryFee;
+    }
+
+    private int calculateBaseOnCartValue(int surcharge, int cartVal, int minCartVal){
+        if (cartVal < minCartVal){
+            surcharge = minCartVal - cartVal;
+        }
+        return surcharge;
+    }
+
+    private int calculateBaseOnDistance(int deliveryFee, int distanceDiff, int additionDist, int additionFee){
         // for first 500m additional distance
         if (distanceDiff > 0){
             if (distanceDiff/additionDist == 0){
@@ -60,23 +89,29 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
                 deliveryFee += additionFee * (distanceDiff/additionDist);
             }
         }
+        return deliveryFee;
+    }
 
-
-        // Item base
-        int baseItemNo = 4;
+    private int calculateBaseOnItem(int surcharge, int numberOfItem, int baseItemNo){
         if (numberOfItem > baseItemNo){
             surcharge += (numberOfItem - baseItemNo) * 50;
         }
+        return surcharge;
+    }
 
-        deliveryFee = deliveryFee + surcharge;
+    private int calculateBaseOnTime(int deliveryFee, String time){
+        Calendar dateTime = Utils.isoTimeStrToDateTimeUTC(time);
+        int hour = dateTime.get(Calendar.HOUR_OF_DAY);
+        int minute = dateTime.get(Calendar.MINUTE);
+        int second = dateTime.get(Calendar.SECOND);
 
-        // Time base after got the total
-        Utils.parseStrToDateTimeUTC(time);
-
-        if (deliveryFee >= maxFee){
-            deliveryFee = maxFee;
+        if (dateTime.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY){
+            if (hour >= 15 && hour <= 19){
+                if (!(hour == 19 && (minute > 0 || second > 0))){
+                    deliveryFee = (int) (deliveryFee * 1.1);
+                }
+            }
         }
-
         return deliveryFee;
     }
 
@@ -89,5 +124,21 @@ public class DeliveryFeeCalculatorServiceImpl implements IDeliveryFeeCalculatorS
     public DeliveryFeeDTO getDeliveryFeeDTO(int deliveryFee) {
         deliveryFeeDTO.setDeliveryFee(deliveryFee);
         return deliveryFeeDTO;
+    }
+
+    public int getFeeBaseOnCartValue(int surcharge, int cartVal, int minCartVal){
+        return calculateBaseOnCartValue(surcharge, cartVal, minCartVal);
+    }
+
+    public int getFeeBaseOnDistance(int deliveryFee, int distanceDiff, int additionDist, int additionFee){
+        return calculateBaseOnDistance(deliveryFee, distanceDiff, additionDist, additionFee);
+    }
+
+    public int getFeeBaseOnItem(int surcharge, int numberOfItem, int baseItemNo){
+        return calculateBaseOnItem(surcharge, numberOfItem, baseItemNo);
+    }
+
+    public int getFeeBaseOnTime(int deliveryFee, String time){
+        return calculateBaseOnTime(deliveryFee, time);
     }
 }

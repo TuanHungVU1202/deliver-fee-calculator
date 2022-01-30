@@ -3,11 +3,16 @@ package hw.hv.wolt.common;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 public class Utils {
 
@@ -18,7 +23,7 @@ public class Utils {
         return val;
     }
 
-    public static String objToJsonString(String key, Object value) throws JsonProcessingException {
+    public static String customMessageObj(String key, Object value) throws JsonProcessingException {
         HashMap<String, Object> map = new HashMap<>();
         map.put(key, value);
         return mapToJsonString(map);
@@ -30,13 +35,15 @@ public class Utils {
         return ret;
     }
 
-    public static Date parseStrToDateTimeUTC (String dateTimeStr){
+    public static Calendar isoTimeStrToDateTimeUTC (String dateTimeStr){
         DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_DATE_TIME;
-
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateTimeStr, timeFormatter);
-
         Date date = Date.from(Instant.from(offsetDateTime));
-        System.out.println(date);
-        return date;
+        Calendar calendar = Calendar.getInstance();
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+
+        calendar.setTimeZone(timeZone);
+        calendar.setTime(date);
+        return calendar;
     }
 }

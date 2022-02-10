@@ -1,3 +1,6 @@
+# Requirement refering to Wolt's github
+https://github.com/woltapp/engineering-summer-intern-2022
+
 # Instruction to build and run the project
 1. Install Maven following the instruction at https://maven.apache.org/install.html. This should help to get all the dependencies on Maven central repository and few from Spring.
 2. Unzip the project, change directory to root directory at _wolt-summer-intern-22_.

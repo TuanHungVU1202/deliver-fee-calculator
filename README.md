@@ -1,4 +1,5 @@
-# Requirement refering to Wolt's github
+# Requirements
+The mini project is built from the assignment from Wolt for the Summer Intern programm 2022, asking for a back-end implementation of a delivery fee calculator
 https://github.com/woltapp/engineering-summer-intern-2022
 
 # Instruction to build and run the project
